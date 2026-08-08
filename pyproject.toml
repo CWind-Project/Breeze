@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "breeze"
+version = "0.0.1"
+authors = [
+    { name = "星灿长风v(StarWindv)", email = "starwindv.stv@gmail.com"}
+]
+license = { text = "BSD-3" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "ariadne_py@git+https://github.com/starwindv/ariadne-py",
+    "rich (>=15.0.0,<16.0.0)",
+]
+
+[project.scripts]
+breeze = "breeze.cli:main"
+
+[tool.setuptools.package-data]
+breeze = ["assets/template/*"]
