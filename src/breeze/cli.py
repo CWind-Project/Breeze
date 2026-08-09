@@ -4,7 +4,7 @@ from typing import cast, Any, Iterable
 from enum import Enum
 
 from .mutex_argparse import BreezeMutexArgParser, BreezeSubCMDHandle, \
-    BreezeArgBox
+    BreezeArgBox, BreezeSymbols, BreezeArgParseError
 from .proj import BreezeProjectCreator
 from brich import Rich
 
@@ -57,7 +57,7 @@ def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
     return parser.parse(argv), parser
 
 
-def main_help(helper_obj: Enum):
+def main_help(helper_obj: Enum) -> int:
     msg: str = """\
 <Bold><Underline>Welcome to Breeze!<Reset>
 
@@ -77,7 +77,8 @@ $cmd
     result = str()
     for k, v in data.items():
         result += f"\n   [#7FFFD4]{k:<{max_length}}<Reset>    {v}\n"
-    Rich.print(msg.replace("$cmd", result), end="\n")
+    Rich.print(msg.replace("$cmd", result))
+    return 0
 
 
 def is_empty(obj: list | dict):
@@ -97,21 +98,41 @@ def is_empty(obj: list | dict):
 
     return True
 
-def main() -> None:
-    box, parser = argparse(sys.argv[:])
-    if is_empty(list(vars(box).values())):
-        main_help(parser.get_helper())
+def main() -> Any | None:
+    try:
+        box, parser = argparse(sys.argv[:])
+        if is_empty(list(vars(box).values())):
+            return main_help(parser.get_helper())
 
-    result_map = {
-        1: getattr(box, "new", None),
-        2: getattr(box, "version", None)
-    }
-    func = {
-        1: lambda path: BreezeProjectCreator.create_proj(cast(str, path)),
-        2: lambda _: print(version(_))
-    }
-    for k, v in result_map.items():
-        if v: func[k](v)
+        result_map = {
+            1: getattr(box, "new", None),
+            2: getattr(box, "version", None)
+        }
+        func = {
+            1: lambda path: BreezeProjectCreator.create_proj(cast(str, path)),
+            2: lambda _: print(version(_))
+        }
+        for k, v in result_map.items():
+            if v: return func[k](v)
+        for k, v in vars(box)[BreezeSymbols.suggestions].items():
+            Rich.print(
+                f"""\
+<Bold><Underline>Breeze<Reset>: 
+ [E] {k}: This is <Bold>[#FFC125]not<Reset> a breeze command.
+ [N] {"Hint":<{len(k)}}: See "<Bold><Underline>[#7FFFD4]breeze<Reset>" (no argument)
+
+<Bold><Underline>Did you mean<Reset>: "{v[0][0]}" ?
+        """
+            )
+    except BreezeArgParseError as err:
+        Rich.print(
+f"""\
+<Bold><Underline>Breeze<Reset>: 
+ [E] {err.token}: This Command Failed
+ [N] {"Hint":<{len(err.token)}}: {err.msg}
+"""
+        )
+
 
 
 if __name__ == "__main__":

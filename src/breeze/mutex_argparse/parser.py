@@ -64,7 +64,7 @@ class BreezeMutexArgParser(BreezeParserEngine):
             rprint(f"DEBUG: {debug}, {type(debug)}")
         result = self._parse(argv)
         suggestion = {
-            arg: result.suggest(arg, top=3)
+            arg: result.suggest(arg, top=1)
             for arg in result.unknown_args
         }
         result.did_you_mean = suggestion

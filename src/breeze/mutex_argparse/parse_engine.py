@@ -21,7 +21,11 @@ class BreezeSymbols:
     debug_env: str = "BREEZE_DEBUG"
 
 
-class BreezeArgParseError(ValueError): pass
+class BreezeArgParseError(ValueError):
+    def __init__(self, msg, token: str, *args, **kwargs):
+        super().__init__(msg)
+        self.token = token
+        self.msg = msg
 
 
 class BreezeSubCMDHandle:
@@ -54,16 +58,11 @@ class BreezeSubCMDHandle:
 class BreezeArgBox:
     def __init__(self):
         self.unknown_args = list()
-        self.result: dict[str, Any] = {
-            BreezeSymbols.suggestions: {}
-        }
         self.did_you_mean = None
-        self.suggestions: dict[str, list[tuple[str, float]]] = self.result[
-            BreezeSymbols.suggestions]
+        self.suggestions: dict[str, list[tuple[str, float]]] = {}
 
     def push(self, k, v):
         setattr(self, k, v)
-        self.result.update({k: v})
 
     def unknown(
             self,
@@ -139,13 +138,15 @@ class BreezeParserEngine:
             if frame.exclusive and frame.seen:
                 prev = next(iter(frame.seen.values()))
                 raise BreezeArgParseError(
-                    f"argument '{token}' conflicts with command "
-                    f"'{prev}' already parsed at the same level"
+                    f"argument \"{token}\" conflicts with command "
+                    f"\"{prev}\" already parsed at the same level",
+                    token
                 )
             if name in frame.seen:
                 raise BreezeArgParseError(
-                    f"argument '{token}' repeats command "
-                    f"'{frame.seen[name]}' at the same level"
+                    f"argument \"{token}\" repeats command "
+                    f"\"{frame.seen[name]}\" at the same level",
+                    token
                 )
             frame.seen[name] = token
 
@@ -250,7 +251,8 @@ class BreezeParserEngine:
     def __take_value(args: list[str], idx: int, token: str) -> str:
         if idx + 1 >= len(args):
             raise BreezeArgParseError(
-                f"argument '{token}' requires a value"
+                f"argument \"{token}\" requires a value",
+                token
             )
         return args[idx + 1]
 
@@ -263,7 +265,8 @@ class BreezeParserEngine:
         except (TypeError, ValueError) as err:
             name = getattr(recv, "__name__", str(recv))
             raise BreezeArgParseError(
-                f"argument '{token}': cannot convert '{raw}' to {name}"
+                f"argument \"{token}\": cannot convert \"{raw}\" to {name}",
+                token
             ) from err
 
     @staticmethod
