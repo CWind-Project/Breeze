@@ -53,7 +53,7 @@ class BreezeMutexArgParser(BreezeParserEngine):
             return BreezeSubCMDHandle(
                 self._rule[
                     BreezeSymbols.me
-                ][name], self
+                ][name]
             )
         return None
 

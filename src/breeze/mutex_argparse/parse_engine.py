@@ -25,9 +25,8 @@ class BreezeArgParseError(ValueError): pass
 
 
 class BreezeSubCMDHandle:
-    def __init__(self, target: dict, obj: Optional[object] = None) -> None:
+    def __init__(self, target: dict) -> None:
         self.__ref = target
-        self.father = obj
 
     def add_option[T](
             self,
@@ -36,8 +35,6 @@ class BreezeSubCMDHandle:
             helper: str = "",
             default: Optional[T | bool] = None,
     ) -> None:
-        if self.father:
-            self.father.add_helper( name, helper )
         if default is None and (
                 recv_type is None or recv_type is type(None)
         ):
