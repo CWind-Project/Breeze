@@ -14,7 +14,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "ariadne_py@git+https://github.com/starwindv/ariadne-py",
+    "ariadne_py@git+https://github.com/CWind-Project/ariadne-py",
+    "brich@git+https://github.com/CWind-Project/brich",
     "rich (>=15.0.0,<16.0.0)",
 ]
 
