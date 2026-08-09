@@ -1,3 +1,0 @@
-pub fn great(name: String) -> String {
-	return "Hello,  {}!".format(name);
-}

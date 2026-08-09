@@ -1,6 +1,5 @@
 import dataclasses
 from typing import Optional, Any, cast
-from rich import print as rprint
 
 from .fc import BreezeFuzzinessCalculator, BreezeNonEnglishError, \
     BreezeWordVector
@@ -19,22 +18,26 @@ class BreezeSymbols:
     recv: str = "receive_type"  # 无论何时何处, 如果 receive 的 type 被设置为 None, 则代表当前这个命令不需要参数, 如果出现在子命令中, 则代表 True
     default: str = "default"
     ls_cmd: str = "command_list"
+    debug_env: str = "BREEZE_DEBUG"
 
 
 class BreezeArgParseError(ValueError): pass
 
 
-class BreezeSubCommandHandle:
-    def __init__(self, target: dict) -> None:
+class BreezeSubCMDHandle:
+    def __init__(self, target: dict, obj: Optional[object] = None) -> None:
         self.__ref = target
+        self.father = obj
 
     def add_option[T](
             self,
             name: str,
             recv_type: T,
-            helper: Optional[str] = "",
+            helper: str = "",
             default: Optional[T | bool] = None,
     ) -> None:
+        if self.father:
+            self.father.add_helper( name, helper )
         if default is None and (
                 recv_type is None or recv_type is type(None)
         ):
@@ -84,6 +87,9 @@ class BreezeArgBox:
             items = items[:top]
         return [name for name, _score in items]
 
+    def __str__(self) -> str:
+        return str(vars(self))
+
 
 @dataclasses.dataclass()
 class _BreezeParserFrame:
@@ -94,7 +100,7 @@ class _BreezeParserFrame:
     exclusive: bool = False  # 本层命令是否互斥(顶层 mutually_exclusive 为 True)
 
 
-class _BreezeParserEngine:
+class BreezeParserEngine:
     def __init__(
             self,
             prog: str = "",
@@ -114,9 +120,8 @@ class _BreezeParserEngine:
         ][BreezeSymbols.ls_cmd] = set()
 
     def _parse(self, argv: list[str]) -> BreezeArgBox:
-        args = list(argv)
-        if args:
-            args.pop(0)
+        if argv:
+            argv.pop(0)
 
         result = BreezeArgBox()
         stack: list[_BreezeParserFrame] = [
@@ -124,8 +129,8 @@ class _BreezeParserEngine:
         ]
 
         idx = 0
-        while idx < len(args):
-            token = args[idx]
+        while idx < len(argv):
+            token = argv[idx]
 
             hit, candidates = self.__match_or_collect(stack, token)
             if hit is None:
@@ -152,7 +157,7 @@ class _BreezeParserEngine:
                 frame.target.push(name, True)
                 idx += 1
             else:
-                raw = self.__take_value(args, idx, token)
+                raw = self.__take_value(argv, idx, token)
                 frame.target.push(name, self.__convert(recv, raw, token))
                 idx += 2
 
@@ -279,53 +284,10 @@ class _BreezeParserEngine:
                 target.push(name, default)
 
 
-class MutexArgParser(_BreezeParserEngine):
-    def __init__(
-            self,
-            *args, **kwargs
-    ) -> None:
-        super().__init__(*args, **kwargs)
-
-    def add_mutually_exclusive(
-            self,
-            name: str,
-            recv_type: type,
-            helper: Optional[str] = "",
-            add_separator: Optional[bool] = False,
-            need_subcmd: bool = False
-    ) -> BreezeSubCommandHandle | None:
-        self._rule[
-            BreezeSymbols.me
-        ][name] = {
-            BreezeSymbols.recv: recv_type,
-            BreezeSymbols.vector: BreezeFuzzinessCalculator.word_to_vector(
-                name),
-            BreezeSymbols.helper: helper,
-            BreezeSymbols.sep: add_separator
-        }
-        self._rule[
-            BreezeSymbols.me
-        ][BreezeSymbols.ls_cmd].add(name)
-        if need_subcmd:
-            self._rule[
-                BreezeSymbols.me
-            ][name][BreezeSymbols.subcmd] = dict()
-            self._rule[
-                BreezeSymbols.me
-            ][name][BreezeSymbols.subcmd][BreezeSymbols.ls_cmd] = []
-            return BreezeSubCommandHandle(
-                self._rule[
-                    BreezeSymbols.me
-                ][name]
-            )
-        return None
-
-    def parse(self, argv: list[str]) -> BreezeArgBox:
-        rprint(self._rule)
-        result = self._parse(argv)
-        suggestion = {
-            arg: result.suggest(arg, top=3)
-            for arg in result.unknown_args
-        }
-        result.did_you_mean = suggestion
-        return result
+__all__ = [
+    "BreezeParserEngine",
+    "BreezeArgBox",
+    "BreezeArgParseError",
+    "BreezeSubCMDHandle",
+    "BreezeSymbols"
+]

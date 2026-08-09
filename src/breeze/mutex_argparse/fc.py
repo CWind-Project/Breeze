@@ -14,10 +14,6 @@ class BreezeNonEnglishError(TypeError): pass
 
 
 class BreezeFuzzinessCalculator:
-    ordered_alphabet: dict[str, int] = { # impl for v0.1.0
-        chr(i): i - 96 if i >= 97 else i - 64
-        for i in list(range(97, 123)) + list(range(65, 91))
-    }
     alphabet: dict[str, float] = {
         '-': 1, '_': 0, '=': 1, '+': 0, ' ': 0,
         'q': 4, 'w': 3, 'e': 2, 'r': 1, 't': 1, 'y': 2, 'u': 3, 'i': 1, 'o': 2, 'p': 3,
@@ -54,3 +50,7 @@ class BreezeFuzzinessCalculator:
         ):
             result += abs(a - b)  # * idx / length # impl for v0.1.0 ~ v0.2.0
         return float(100 - result)
+
+    @classmethod
+    def quick_calc(cls, word1: str, word2: str) -> float:
+        return cls.calc_similarity(cls.word_to_vector(word1), cls.word_to_vector(word2))
