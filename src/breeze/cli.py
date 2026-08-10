@@ -108,7 +108,7 @@ $desc
     match sth:
         case "new":
             desc = f"""\
-<Dim>|<Reset>    This command will create a new Breeze package in the given directory.<Dim>|<Reset>
+<Dim>|<Reset>    This command will create a new Breeze package in the given directory <Dim>|<Reset>
 <Dim>|<Reset>    This includes a simple template with a Breeze.toml manifest, sample  <Dim>|<Reset>
 <Dim>|<Reset>    source file, .git directory and a .gitignore file.                   <Dim>|<Reset>
 <Dim>|<Reset>{" "*73}<Dim>|<Reset>\
