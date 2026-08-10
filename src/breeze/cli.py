@@ -11,7 +11,7 @@ from brich import Rich
 __package__ = "breeze"
 
 
-def version(_: Any) -> str:
+def version(*_) -> str:
     result = """\
 Breeze Package Manager for CWind Programming Language
 Version: v$ver
@@ -57,7 +57,7 @@ def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
     return parser.parse(argv), parser
 
 
-def main_help(helper_obj: Enum) -> int:
+def main_help(helper_obj: Enum, *_) -> int:
     msg: str = """\
 <Bold><Underline>Welcome to Breeze!<Reset>
 
@@ -78,6 +78,63 @@ $cmd
     for k, v in data.items():
         result += f"\n   [#7FFFD4]{k:<{max_length}}<Reset>    {v}\n"
     Rich.print(msg.replace("$cmd", result))
+    return 0
+
+
+def help_sth(sth: str) -> int:
+    msg = f"""\
+<Dim>+{"-"*73}+<Reset>
+<Dim>|<Reset> <Bold>Breeze-Verbose Help<Reset>{" "*53}<Dim>|<Reset>
+<Dim>+{"-"*73}+<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>|<Reset> <Bold><Underline>Synopsis<Reset>{" "*64}<Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>|<Reset>    breeze $name $args
+<Dim>+{"-"*73}+<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>|<Reset> <Bold><Underline>Description<Reset>{" "*61}<Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+$desc
+<Dim>+{"-"*73}+<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>|<Reset> <Bold><Underline>Options<Reset>{" "*65}<Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>|<Reset>    $opts
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
+<Dim>+{"-"*73}+<Reset>
+"""
+    desc, opts, name, args = str(), str(), sth, str()
+    match sth:
+        case "new":
+            desc = f"""\
+<Dim>|<Reset>    This command will create a new Breeze package in the given directory.<Dim>|<Reset>
+<Dim>|<Reset>    This includes a simple template with a Breeze.toml manifest, sample  <Dim>|<Reset>
+<Dim>|<Reset>    source file, .git directory and a .gitignore file.                   <Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>\
+"""
+            args = f"[options] path{" "*44}<Dim>|<Reset>"
+            opts = f"--lib    Create project in library mode (not completed){" "*14}<Dim>|<Reset>"
+        case "version":
+            desc = f"""\
+<Dim>|<Reset>    Show version information                                             <Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>\
+"""
+            args = f"<No Args>{" "*45}<Dim>|<Reset>"
+            opts = f"<No Options>{" "*57}<Dim>|<Reset>"
+        case "help":
+            desc = f"""\
+<Dim>|<Reset>    Show Verbose Help for <Command>                                      <Dim>|<Reset>
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>\
+"""
+            args = f"<No Args>{" "*48}<Dim>|<Reset>"
+            opts = f"<No Options>{" "*57}<Dim>|<Reset>"
+        case _: return 1
+    Rich.print(
+        msg.replace("$desc", desc)
+            .replace("$opts", opts)
+            .replace("$name", name)
+            .replace("$args", args)
+    )
     return 0
 
 
@@ -103,14 +160,19 @@ def main() -> Any | None:
         box, parser = argparse(sys.argv[:])
         if is_empty(list(vars(box).values())):
             return main_help(parser.get_helper())
+        elif getattr(box, "help", None):
+            return help_sth(getattr(box, "help"))
+
 
         result_map = {
             1: getattr(box, "new", None),
-            2: getattr(box, "version", None)
+            2: getattr(box, "version", None),
+            3: getattr(box, "help", None)
         }
         func = {
             1: lambda path: BreezeProjectCreator.create_proj(cast(str, path)),
-            2: lambda _: print(version(_))
+            2: lambda _: print(version(_)),
+            3: lambda sth: help_sth(sth)
         }
         for k, v in result_map.items():
             if v: return func[k](v)

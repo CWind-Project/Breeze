@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import cast, Any
 import shutil
 
+from brich import Rich
+
 
 class BreezeIdentifier(Enum):
     File   = 1
@@ -100,6 +102,14 @@ class BreezeProjectCreator:
     @classmethod
     def create_proj(cls, target: str) :
         root: Path = Path.absolute(Path(target))
+        if root.exists():
+            Rich.print("""\
+<Bold><Underline>Breeze<Reset>:
+ [E] new : This Command Failed
+     Msg : The Target folder already exists
+ [N] Hint: Try a different path, or delete the corresponding folder
+""")
+            return
         Path.mkdir(root, parents=True, exist_ok=True)
         shutil.copytree(
             BreezeSource.Git_Folder,
