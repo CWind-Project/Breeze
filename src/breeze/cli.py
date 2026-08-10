@@ -90,6 +90,7 @@ def help_sth(sth: str) -> int:
 <Dim>|<Reset> <Bold><Underline>Synopsis<Reset>{" "*64}<Dim>|<Reset>
 <Dim>|<Reset>{" "*73}<Dim>|<Reset>
 <Dim>|<Reset>    breeze $name $args
+<Dim>|<Reset>{" "*73}<Dim>|<Reset>
 <Dim>+{"-"*73}+<Reset>
 <Dim>|<Reset>{" "*73}<Dim>|<Reset>
 <Dim>|<Reset> <Bold><Underline>Description<Reset>{" "*61}<Dim>|<Reset>
