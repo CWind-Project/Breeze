@@ -187,6 +187,7 @@ def main() -> Any | None:
 <Bold><Underline>Did you mean<Reset>: "{v[0][0]}" ?
         """
             )
+            return 1
     except BreezeArgParseError as err:
         Rich.print(
 f"""\
