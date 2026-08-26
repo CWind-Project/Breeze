@@ -25,7 +25,7 @@ id_version = "0.0.1"
 # Dev < Alpha < Beta < RC < Standard
 
 description = ""
-author = ""
+authors = []
 homepage = ""
 
 [entry]
