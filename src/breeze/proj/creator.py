@@ -16,7 +16,7 @@ class BreezeIdentifier(Enum):
 class BreezeSource:
     Bin_Breeze_Toml = """\
 [package]
-name = "$name"
+name = "me"
 version = "0.0.1"
 identifier = "Dev"
 id_version = "0.0.1"
@@ -32,6 +32,9 @@ homepage = ""
 source = "./src"
 is_lib = false
 module = "lib.wd"
+
+[dependencies]
+#NonExistsLib = "0.0.1,Standard"
 """
     Bin_Main_wd     = """\
 fn main() {
