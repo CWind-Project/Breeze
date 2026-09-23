@@ -1,8 +1,8 @@
 import dataclasses
 from typing import Optional, Any, cast
 
-from .fc import BreezeFuzzinessCalculator, BreezeNonEnglishError, \
-    BreezeWordVector
+from ..correct import Matcher
+from .fc import BreezeFuzzinessCalculator, BreezeWordVector
 
 
 @dataclasses.dataclass()
@@ -102,7 +102,7 @@ class BreezeParserEngine:
             prog: str = "",
             desc: str = "",
             suggest_top: int = 3,
-            suggest_threshold: float = 85.0,
+            suggest_threshold: float = 0.0,
     ) -> None:
         self._suggest_top = suggest_top
         self._suggest_threshold = suggest_threshold
@@ -190,9 +190,9 @@ class BreezeParserEngine:
             token: str,
     ) -> tuple[
         tuple[_BreezeParserFrame, str, dict[Any, Any]] | None,
-        list[tuple[str, str, BreezeWordVector[int]]],
+        list[tuple[str, str, BreezeWordVector]],
     ]:
-        candidates: list[tuple[str, str, BreezeWordVector[int]]] = []
+        candidates: list[tuple[str, str, BreezeWordVector]] = []
         while len(stack) > 1:
             matched = cls.__match_command(stack[-1].rules, token)
             if matched is not None:
@@ -211,9 +211,9 @@ class BreezeParserEngine:
     @staticmethod
     def __candidates(
             rules: dict[Any, Any],
-    ) -> list[tuple[str, str, BreezeWordVector[int]]]:
+    ) -> list[tuple[str, str, BreezeWordVector]]:
         """收集一层的候选命令: (名字, 命令行写法, 预计算向量)"""
-        out: list[tuple[str, str, BreezeWordVector[int]]] = []
+        out: list[tuple[str, str, BreezeWordVector]] = []
         for name in rules[BreezeSymbols.ls_cmd]:
             rule = rules[name]
             display = f"--{name}" if rule[BreezeSymbols.sep] else name
@@ -222,30 +222,32 @@ class BreezeParserEngine:
 
     def __suggest(
             self,
-            candidates: list[tuple[str, str, BreezeWordVector[int]]],
+            candidates: list[tuple[str, str, BreezeWordVector]],
             token: str,
     ) -> list[tuple[str, float]]:
         word = token.lstrip("-").split("=", 1)[0]
-        if not word:
-            return []
-        try:
-            token_vec = BreezeFuzzinessCalculator.word_to_vector(word)
-        except BreezeNonEnglishError:
+        if not word or self._suggest_top <= 0:
             return []
 
+        vocabulary = [name for name, _display, _vector in candidates]
+        if not vocabulary:
+            return []
+
+        matcher = Matcher(vocabulary)
+        display_by_name = {
+            name: display for name, display, _vector in candidates
+        }
         scored: list[tuple[str, float]] = []
-        for _name, display, vec in candidates:
-            try:
-                score = float(
-                    BreezeFuzzinessCalculator.calc_similarity(token_vec, vec)
-                )
-            except BreezeNonEnglishError:
+        for candidate in matcher.rank(word, topk=len(vocabulary)):
+            if not matcher.is_match(candidate.word, word):
                 continue
-            if score >= self._suggest_threshold:
-                scored.append((display, score))
-
-        scored.sort(key=lambda item: item[1], reverse=True)
-        return scored[: self._suggest_top]
+            score = candidate.similarity * 100.0
+            if score < self._suggest_threshold:
+                continue
+            scored.append((display_by_name[candidate.word], score))
+            if len(scored) >= self._suggest_top:
+                break
+        return scored
 
     @staticmethod
     def __take_value(args: list[str], idx: int, token: str) -> str:

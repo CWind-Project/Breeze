@@ -1,0 +1,11 @@
+use modules::greet::greet;
+
+fn main(args: Vec<String>) {
+    let mut name: String;
+    if args.length() == 0 {
+        name = "World";
+    } else {
+        name = args.to_string();
+    }
+	println!("{}", greet(name));
+}

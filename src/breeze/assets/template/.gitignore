@@ -1,0 +1,10 @@
+# Folders
+/target
+/build
+[T/t]emp
+[E/e]xclude
+[I/i]gnore
+/.gitignore
+
+# Files
+*.tmp

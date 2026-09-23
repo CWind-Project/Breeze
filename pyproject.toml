@@ -24,4 +24,7 @@ dependencies = [
 breeze = "breeze.cli:main"
 
 [tool.setuptools.package-data]
-breeze = ["assets/template/**/*"]
+breeze = [
+    "assets/template/**/*",
+    "assets/template/.gitignore",
+]
