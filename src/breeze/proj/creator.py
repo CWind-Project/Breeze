@@ -1,8 +1,9 @@
 from pathlib import Path
 import shutil
 
-from brich import Rich
 from dulwich.repo import Repo
+
+from ..help_renderer import render_target_error
 
 
 class BreezeSource:
@@ -14,12 +15,7 @@ class BreezeProjectCreator:
     def create_proj(cls, target: str) -> None:
         root = Path(target).absolute()
         if root.exists():
-            Rich.print("""\
-<Bold><Underline>Breeze<Reset>:
- [E] new : This Command Failed
-     Msg : The Target folder already exists
- [N] Hint: Try a different path, or delete the corresponding folder
-""")
+            render_target_error()
             return
 
         root.mkdir(parents=True, exist_ok=True)

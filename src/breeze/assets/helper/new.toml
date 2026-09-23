@@ -1,0 +1,21 @@
+page_title = "Breeze-Verbose Help"
+synopsis_heading = "Synopsis"
+description_heading = "Description"
+options_heading = "Options"
+synopsis = "breeze new [options] path"
+description = [
+    "This command will create a new Breeze package in the given directory ",
+    "This includes a simple template with a Breeze.toml manifest, sample  ",
+    "source file, .git directory and a .gitignore file.",
+]
+summary = "Create New CWind Project from Template"
+width = 73
+body_indent = "    "
+option_gap = "    "
+
+[style]
+title = "<Bold>"
+heading = "<Bold><Underline>"
+body = ""
+option = ""
+border = "<Dim>"

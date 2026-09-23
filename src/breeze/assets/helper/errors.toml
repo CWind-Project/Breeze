@@ -1,0 +1,36 @@
+heading = "Breeze"
+heading_suffix_unknown = ": "
+heading_suffix_target = ":"
+error_label = "[E]"
+hint_label = "[N]"
+hint_text_label = "Hint"
+message_label = "Msg"
+target_error_indent = " "
+target_message_indent = "     "
+not_word = "not"
+suggestion_heading = "Did you mean"
+suggestion_suffix = ": \"{suggestion}\" ?"
+
+[unknown]
+hint_prefix = "See \""
+hint_command = "breeze"
+hint_suffix = "\" (no argument)"
+
+[parse]
+failed = "{token}: This Command Failed"
+hint = "{message}"
+conflict = "argument \"{token}\" conflicts with command \"{previous}\" already parsed at the same level"
+repeat = "argument \"{token}\" repeats command \"{previous}\" already parsed at the same level"
+missing = "argument \"{token}\" requires a value"
+convert = "argument \"{token}\": cannot convert \"{value}\" to {type}"
+
+[target]
+failed = "new : This Command Failed"
+message = "The Target folder already exists"
+hint = "Try a different path, or delete the corresponding folder"
+
+[style]
+heading = "<Bold><Underline>"
+not_word = "<Bold>[#FFC125]"
+hint_command = "<Bold><Underline>[#7FFFD4]"
+suggestion = "<Bold><Underline>"

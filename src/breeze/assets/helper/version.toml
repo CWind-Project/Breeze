@@ -1,0 +1,24 @@
+page_title = "Breeze-Verbose Help"
+synopsis_heading = "Synopsis"
+description_heading = "Description"
+options_heading = "Options"
+synopsis = "breeze version <No Args>"
+description = ["Show version information"]
+empty_options = "<No Options>"
+summary = "Print the Version of this Breeze"
+banner = """Breeze Package Manager for CWind Programming Language
+Version: v{version}
+Copyright (c) 2026 StarWindv, CWind-Project
+SPDX-License-Identifier: BSD-3-Clause
+"""
+width = 73
+body_indent = "    "
+option_gap = "    "
+
+[style]
+title = "<Bold>"
+heading = "<Bold><Underline>"
+body = ""
+option = ""
+border = "<Dim>"
+banner = ""

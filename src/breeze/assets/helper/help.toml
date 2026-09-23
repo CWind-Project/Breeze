@@ -1,0 +1,18 @@
+page_title = "Breeze-Verbose Help"
+synopsis_heading = "Synopsis"
+description_heading = "Description"
+options_heading = "Options"
+synopsis = "breeze help <No Args>"
+description = ["Show Verbose Help for <Command>"]
+empty_options = "<No Options>"
+summary = "Print the Verbose Help Msg for <command>"
+width = 73
+body_indent = "    "
+option_gap = "    "
+
+[style]
+title = "<Bold>"
+heading = "<Bold><Underline>"
+body = ""
+option = ""
+border = "<Dim>"

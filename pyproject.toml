@@ -27,4 +27,5 @@ breeze = "breeze.cli:main"
 breeze = [
     "assets/template/**/*",
     "assets/template/.gitignore",
+    "assets/helper/*.toml",
 ]

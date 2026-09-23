@@ -1,0 +1,27 @@
+title = "Welcome to Breeze!"
+intro_subject = "Breeze"
+intro_text = " is a simple package manager for "
+url = "https://github.com/CWind-Project"
+url_label = "CWind-Lang"
+usage_heading = "Usage:"
+usage_indent = "   "
+usage_command = "breeze"
+usage_suffix = " [Command] [Args] [Options]"
+commands_heading = "Commands:"
+command_indent = "   "
+command_gap = "    "
+
+[markup]
+intro_subject = "<Bold>"
+intro_text = "<UnBold>"
+url = "<Bold><Flashing><HyperStart>"
+url_label = "<HyperText>"
+url_end = "<HyperEnd><Reset>"
+
+[style]
+title = "<Bold><Underline>"
+usage_heading = "<Bold><Underline>"
+usage_command = "[#FFC125]"
+commands_heading = "<Bold><Underline>"
+command = "[#7FFFD4]"
+summary = ""

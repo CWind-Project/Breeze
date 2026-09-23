@@ -2,6 +2,7 @@ import dataclasses
 from typing import Optional, Any, cast
 
 from ..correct import Matcher
+from ..help_renderer import parse_message
 from .fc import BreezeFuzzinessCalculator, BreezeWordVector
 
 
@@ -138,14 +139,16 @@ class BreezeParserEngine:
             if frame.exclusive and frame.seen:
                 prev = next(iter(frame.seen.values()))
                 raise BreezeArgParseError(
-                    f"argument \"{token}\" conflicts with command "
-                    f"\"{prev}\" already parsed at the same level",
+                    parse_message("conflict", token=token, previous=prev),
                     token
                 )
             if name in frame.seen:
                 raise BreezeArgParseError(
-                    f"argument \"{token}\" repeats command "
-                    f"\"{frame.seen[name]}\" at the same level",
+                    parse_message(
+                        "repeat",
+                        token=token,
+                        previous=frame.seen[name],
+                    ),
                     token
                 )
             frame.seen[name] = token
@@ -253,7 +256,7 @@ class BreezeParserEngine:
     def __take_value(args: list[str], idx: int, token: str) -> str:
         if idx + 1 >= len(args):
             raise BreezeArgParseError(
-                f"argument \"{token}\" requires a value",
+                parse_message("missing", token=token),
                 token
             )
         return args[idx + 1]
@@ -267,7 +270,7 @@ class BreezeParserEngine:
         except (TypeError, ValueError) as err:
             name = getattr(recv, "__name__", str(recv))
             raise BreezeArgParseError(
-                f"argument \"{token}\": cannot convert \"{raw}\" to {name}",
+                parse_message("convert", token=token, value=raw, type=name),
                 token
             ) from err
 
