@@ -13,10 +13,6 @@ class BreezeWordVector:
     word: str
 
 
-class BreezeNonEnglishError(TypeError):
-    pass
-
-
 class BreezeFuzzinessCalculator:
     @classmethod
     def word_to_vector(cls, word: str) -> BreezeWordVector:
