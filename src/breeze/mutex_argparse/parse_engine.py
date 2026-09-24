@@ -15,6 +15,7 @@ class BreezeSymbols:
     sep: str = "add_separator"  # 如果为 true, 则代表命令必须以 "--" 开头才被视作命令
     me: str = "mutually_exclusive"
     helper: str = "helper"
+    optional_value: str = "optional_value"
     vector: str = "arg_vector"
     recv: str = "receive_type"  # 无论何时何处, 如果 receive 的 type 被设置为 None, 则代表当前这个命令不需要参数, 如果出现在子命令中, 则代表 True
     default: str = "default"
@@ -157,6 +158,11 @@ class BreezeParserEngine:
             if self.__is_flag(recv):
                 frame.target.push(name, True)
                 idx += 1
+            elif rule.get(BreezeSymbols.optional_value) and self.__optional_value_missing(
+                    rule, argv, idx
+            ):
+                frame.target.push(name, None)
+                idx += 1
             else:
                 raw = self.__take_value(argv, idx, token)
                 frame.target.push(name, self.__convert(recv, raw, token))
@@ -251,6 +257,23 @@ class BreezeParserEngine:
             if len(scored) >= self._suggest_top:
                 break
         return scored
+
+    @classmethod
+    def __optional_value_missing(
+            cls,
+            rule: dict[Any, Any],
+            args: list[str],
+            idx: int,
+    ) -> bool:
+        if idx + 1 >= len(args):
+            return True
+        token = args[idx + 1]
+        if not token.startswith("-"):
+            return False
+        subrules = rule.get(BreezeSymbols.subcmd)
+        if isinstance(subrules, dict):
+            return cls.__match_command(subrules, token) is not None
+        return True
 
     @staticmethod
     def __take_value(args: list[str], idx: int, token: str) -> str:

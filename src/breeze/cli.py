@@ -4,6 +4,7 @@ from typing import Any, cast
 
 from .help_renderer import (
     render_command,
+    render_command_error,
     render_parse_error,
     render_unknown_error,
     render_version,
@@ -11,8 +12,13 @@ from .help_renderer import (
     version_text,
 )
 from .mutex_argparse import BreezeMutexArgParser, BreezeSubCMDHandle, \
-    BreezeArgBox, BreezeSymbols, BreezeArgParseError
-from .proj import BreezeProjectCreator
+    BreezeArgBox, BreezeArgParseError
+from .proj import (
+    BreezeBuildError,
+    BreezeProjectCreator,
+    build_project,
+    check_project,
+)
 
 __package__ = "breeze"
 
@@ -26,6 +32,9 @@ def version(*_) -> str:
 
 
 def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
+    argv = list(argv)
+    if len(argv) >= 4 and argv[1:3] == ["new", "--lib"]:
+        argv = [argv[0], "new", argv[3], "--lib", *argv[4:]]
     parser = BreezeMutexArgParser(prog="breeze")
     parser.add_mutually_exclusive("version", recv_type=type(None))
     parser.add_mutually_exclusive("help", recv_type=str)
@@ -39,6 +48,22 @@ def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
         )
     )
     new_sub.add_option("lib", type(None))
+
+    build_sub: BreezeSubCMDHandle = cast(
+        BreezeSubCMDHandle,
+        parser.add_mutually_exclusive(
+            "build",
+            recv_type=str,
+            need_subcmd=True,
+            optional_value=True,
+        )
+    )
+    build_sub.add_option("build-args", str)
+    parser.add_mutually_exclusive(
+        "check",
+        recv_type=str,
+        optional_value=True,
+    )
     return parser.parse(argv), parser
 
 
@@ -67,6 +92,7 @@ def is_empty(obj: list | dict):
 
     return True
 
+
 def main() -> Any | None:
     try:
         box, parser = argparse(sys.argv[:])
@@ -75,24 +101,31 @@ def main() -> Any | None:
         elif getattr(box, "help", None):
             return help_sth(getattr(box, "help"), parser)
 
-        result_map = {
-            1: getattr(box, "new", None),
-            2: getattr(box, "version", None),
-            3: getattr(box, "help", None)
-        }
-        func = {
-            1: lambda path: BreezeProjectCreator.create_proj(cast(str, path)),
-            2: lambda _: render_version(version(_)),
-            3: lambda sth: help_sth(sth, parser)
-        }
-        for k, v in result_map.items():
-            if v:
-                return func[k](v)
-        for token, suggestions in vars(box)[BreezeSymbols.suggestions].items():
-            suggestion = suggestions[0][0] if suggestions else None
-            return render_unknown_error(token, suggestion)
+        if box.unknown_args:
+            for token in box.unknown_args:
+                suggestions = box.suggestions.get(token, [])
+                suggestion = suggestions[0][0] if suggestions else None
+                return render_unknown_error(token, suggestion)
+        if hasattr(box, "build"):
+            return build_project(
+                getattr(box, "build"),
+                vars(box).get("build-args"),
+            )
+        if hasattr(box, "check"):
+            return check_project(getattr(box, "check"))
+        if hasattr(box, "new"):
+            return BreezeProjectCreator.create_proj(
+                cast(str, getattr(box, "new")),
+                is_lib=bool(getattr(box, "lib", False)),
+            )
+        if hasattr(box, "version"):
+            return render_version(version())
+        if hasattr(box, "help"):
+            return help_sth(getattr(box, "help"), parser)
     except BreezeArgParseError as err:
         return render_parse_error(err.token, err.msg)
+    except BreezeBuildError as err:
+        return render_command_error(str(err))
 
 
 if __name__ == "__main__":

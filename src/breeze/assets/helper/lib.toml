@@ -1,5 +1,5 @@
 summary = "(Under Dev) Create New CWind Project with Library Mode"
-verbose = "Create project in library mode (not completed)"
+verbose = "Create project in library mode"
 
 [style]
 summary = ""

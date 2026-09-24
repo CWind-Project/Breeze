@@ -62,7 +62,8 @@ class BreezeMutexArgParser(BreezeParserEngine):
             recv_type: type,
             helper: str = "",
             double_dash: Optional[bool] = False,
-            need_subcmd: bool = False
+            need_subcmd: bool = False,
+            optional_value: bool = False,
     ) -> BreezeSubCMDHandle | None:
         self.add_helper(name, helper)
         self._rule[
@@ -72,6 +73,7 @@ class BreezeMutexArgParser(BreezeParserEngine):
             BreezeSymbols.vector: BreezeFuzzinessCalculator.word_to_vector(
                 name),
             BreezeSymbols.helper: helper,
+            BreezeSymbols.optional_value: optional_value,
             BreezeSymbols.sep: double_dash
         }
         self._rule[

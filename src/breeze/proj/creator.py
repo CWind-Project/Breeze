@@ -12,7 +12,7 @@ class BreezeSource:
 
 class BreezeProjectCreator:
     @classmethod
-    def create_proj(cls, target: str) -> None:
+    def create_proj(cls, target: str, is_lib: bool = False) -> None:
         root = Path(target).absolute()
         if root.exists():
             render_target_error()
@@ -25,10 +25,12 @@ class BreezeProjectCreator:
             dirs_exist_ok=True,
         )
         manifest = root / "Breeze.toml"
-        manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace("$name", root.name),
-            encoding="utf-8",
+        manifest_text = manifest.read_text(encoding="utf-8").replace(
+            "$name", root.name
         )
+        if is_lib:
+            manifest_text = manifest_text.replace("is_lib = false", "is_lib = true")
+        manifest.write_text(manifest_text, encoding="utf-8")
         with Repo.init(root):
             pass
 

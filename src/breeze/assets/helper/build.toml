@@ -1,0 +1,17 @@
+page_title = "Breeze-Verbose Help"
+synopsis_heading = "Synopsis"
+description_heading = "Description"
+options_heading = "Options"
+synopsis = "breeze build [path] [--build-args \"...\"]"
+description = ["Compile the project with cwindf and cwindc."]
+summary = "Build a CWind project"
+width = 73
+body_indent = "    "
+option_gap = "    "
+
+[style]
+title = "<Bold>"
+heading = "<Bold><Underline>"
+body = ""
+option = ""
+border = "<Dim>"

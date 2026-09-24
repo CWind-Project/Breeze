@@ -315,6 +315,18 @@ def render_unknown_error(token: str, suggestion: str | None = None) -> int:
     return 1
 
 
+def render_command_error(text: str) -> int:
+    data = _load("errors")
+    message = _Message()
+    _error_heading(data, message, _text(data, "heading_suffix_unknown"))
+    message.text(" ")
+    message.text(_text(data, "error_label"))
+    message.text(" ")
+    message.text(text)
+    message.emit()
+    return 1
+
+
 def render_parse_error(token: str, error_message: str) -> int:
     data = _load("errors")
     message = _Message()
@@ -377,6 +389,7 @@ __all__ = [
     "helper_summary",
     "parse_message",
     "render_command",
+    "render_command_error",
     "render_parse_error",
     "render_target_error",
     "render_unknown_error",
