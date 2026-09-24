@@ -7,6 +7,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from brich import Rich
+
 
 class BreezeBuildError(RuntimeError):
     pass
@@ -134,7 +136,10 @@ def build_project(
     if is_lib:
         command.extend(["--emit", "share"])
     command.append(str(project_json))
-    return _run(command)
+    result = _run(command)
+    if result == 0:
+        Rich.print("[<Bold><Underline>Breeze<Reset>] Done")
+    return result
 
 
 __all__ = ["BreezeBuildError", "build_project", "check_project"]

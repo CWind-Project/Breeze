@@ -1,6 +1,6 @@
 import importlib.metadata
 import sys
-from typing import Any, cast
+from typing import Any, cast, Callable
 
 from .help_renderer import (
     render_command,
@@ -19,6 +19,7 @@ from .proj import (
     build_project,
     check_project,
 )
+
 
 __package__ = "breeze"
 
@@ -93,35 +94,38 @@ def is_empty(obj: list | dict):
     return True
 
 
+def build_handler(box: BreezeArgBox, parser: BreezeMutexArgParser)-> dict[str, Callable[[], int]] :
+    return {
+        "version": lambda: render_version(version()),
+        "help": lambda: help_sth(getattr(box, "help"), parser),
+        "new": lambda: BreezeProjectCreator.create_proj(
+            cast(str, getattr(box, "new")),
+            is_lib=bool(getattr(box, "lib", False)),
+        ),
+        "build": lambda: build_project(
+            getattr(box, "build"),
+            vars(box).get("build-args"),
+        ),
+        "check": lambda: check_project(getattr(box, "check")),
+    }
+
+
 def main() -> Any | None:
     try:
         box, parser = argparse(sys.argv[:])
         if is_empty(list(vars(box).values())):
             return main_help(parser)
-        elif getattr(box, "help", None):
-            return help_sth(getattr(box, "help"), parser)
 
         if box.unknown_args:
             for token in box.unknown_args:
                 suggestions = box.suggestions.get(token, [])
                 suggestion = suggestions[0][0] if suggestions else None
                 return render_unknown_error(token, suggestion)
-        if hasattr(box, "build"):
-            return build_project(
-                getattr(box, "build"),
-                vars(box).get("build-args"),
-            )
-        if hasattr(box, "check"):
-            return check_project(getattr(box, "check"))
-        if hasattr(box, "new"):
-            return BreezeProjectCreator.create_proj(
-                cast(str, getattr(box, "new")),
-                is_lib=bool(getattr(box, "lib", False)),
-            )
-        if hasattr(box, "version"):
-            return render_version(version())
-        if hasattr(box, "help"):
-            return help_sth(getattr(box, "help"), parser)
+
+        handlers = build_handler(box, parser)
+        for name, handler in handlers.items():
+            if hasattr(box, name):
+                return handler()
     except BreezeArgParseError as err:
         return render_parse_error(err.token, err.msg)
     except BreezeBuildError as err:

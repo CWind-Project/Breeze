@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 
+from brich import Rich
 from dulwich.repo import Repo
 
 from ..help_renderer import render_target_error
@@ -12,11 +13,11 @@ class BreezeSource:
 
 class BreezeProjectCreator:
     @classmethod
-    def create_proj(cls, target: str, is_lib: bool = False) -> None:
+    def create_proj(cls, target: str, is_lib: bool = False) -> int:
         root = Path(target).absolute()
         if root.exists():
             render_target_error()
-            return
+            return 0
 
         root.mkdir(parents=True, exist_ok=True)
         shutil.copytree(
@@ -33,6 +34,8 @@ class BreezeProjectCreator:
         manifest.write_text(manifest_text, encoding="utf-8")
         with Repo.init(root):
             pass
+        Rich.print("[<Bold><Underline>Breeze<Reset>] Done")
+        return 0
 
 
 __all__ = [
