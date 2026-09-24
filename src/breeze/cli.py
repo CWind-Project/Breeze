@@ -2,6 +2,7 @@ import importlib.metadata
 import sys
 from typing import Any, cast, Callable
 
+from .correct import Matcher
 from .help_renderer import (
     render_command,
     render_command_error,
@@ -36,6 +37,10 @@ def version(*_) -> str:
 
 def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
     argv = list(argv)
+    help_targets: list[str] | None = None
+    if len(argv) >= 3 and argv[1] == "help":
+        help_targets = argv[2:]
+        argv = [argv[0], "help", help_targets[0]]
     if len(argv) >= 4 and argv[1:3] == ["new", "--lib"]:
         argv = [argv[0], "new", argv[3], "--lib", *argv[4:]]
     parser = BreezeMutexArgParser(prog="breeze")
@@ -73,7 +78,10 @@ def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
         )
     )
     check_sub.add_option("frontend-args", str)
-    return parser.parse(argv), parser
+    box, parser = parser.parse(argv), parser
+    if help_targets is not None:
+        setattr(box, "help_targets", help_targets)
+    return box, parser
 
 
 def main_help(parser: BreezeMutexArgParser) -> int:
@@ -85,7 +93,29 @@ def help_sth(sth: str, parser: BreezeMutexArgParser) -> int:
         return frontend_help()
     if sth == "backend":
         return backend_help()
-    return render_command(sth, parser.option_entries(sth))
+
+    commands = dict(parser.command_entries())
+    if sth in commands:
+        return render_command(sth, parser.option_entries(sth))
+
+    matcher = Matcher(list(commands))
+    candidate = matcher.best(sth)
+    suggestion = None
+    if candidate is not None and matcher.is_match(candidate.word, sth):
+        suggestion = candidate.word
+    return render_unknown_error(sth, suggestion)
+
+
+def help_targets(box: BreezeArgBox, parser: BreezeMutexArgParser) -> int:
+    status = 0
+    targets = getattr(box, "help_targets", [])
+    if not targets:
+        targets = [cast(str, getattr(box, "help"))]
+    for target in targets:
+        result = help_sth(target, parser)
+        if result != 0:
+            status = result
+    return status
 
 
 def is_empty(obj: list | dict):
@@ -109,7 +139,7 @@ def is_empty(obj: list | dict):
 def build_handler(box: BreezeArgBox, parser: BreezeMutexArgParser)-> dict[str, Callable[[], int]] :
     return {
         "version": lambda: render_version(version()),
-        "help": lambda: help_sth(getattr(box, "help"), parser),
+        "help": lambda: help_targets(box, parser),
         "new": lambda: BreezeProjectCreator.create_proj(
             cast(str, getattr(box, "new")),
             is_lib=bool(getattr(box, "lib", False)),
@@ -132,7 +162,7 @@ def main() -> Any | None:
         if is_empty(list(vars(box).values())):
             return main_help(parser)
 
-        if box.unknown_args:
+        if box.unknown_args and not hasattr(box, "help"):
             for token in box.unknown_args:
                 suggestions = box.suggestions.get(token, [])
                 suggestion = suggestions[0][0] if suggestions else None

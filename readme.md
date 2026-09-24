@@ -75,6 +75,10 @@ help 可以接收全部的其它顶级子命令
 | frontend | 调用`cwindf`输出前端帮助 |
 | backend  | 调用`cwindc`输出后端帮助 |
 
+同时`help`还支持批量帮助, 例如你可以直接输入`breeze help version new build`
+
+breeze 会正确输出每个命令的帮助文本, 并正确处理错误与提示
+
 ---
 
 ## III. Contributing

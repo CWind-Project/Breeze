@@ -300,17 +300,17 @@ def render_unknown_error(token: str, suggestion: str | None = None) -> int:
     message.text(" ")
     message.text(_hint_name(data, token))
     message.text(": ")
-    message.text(_text(unknown, "hint_prefix"))
-    message.text(_text(unknown, "hint_command"), _style(data, "hint_command"))
-    message.text(_text(unknown, "hint_suffix"))
-    message.raw("\n")
     if suggestion:
-        message.raw("\n")
-        message.text(_text(data, "suggestion_heading"), _style(data, "suggestion"))
+        message.text("Did you mean: ")
         message.text(
-            _text(data, "suggestion_suffix").format(suggestion=suggestion)
+            f'"{suggestion}" ?',
+            _style(data, "suggestion"),
         )
-        message.raw("\n        ")
+    else:
+        message.text(_text(unknown, "hint_prefix"))
+        message.text(_text(unknown, "hint_command"), _style(data, "hint_command"))
+        message.text(_text(unknown, "hint_suffix"))
+    message.raw("\n")
     message.emit()
     return 1
 
