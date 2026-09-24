@@ -301,11 +301,9 @@ def render_unknown_error(token: str, suggestion: str | None = None) -> int:
     message.text(_hint_name(data, token))
     message.text(": ")
     if suggestion:
-        message.text("Did you mean: ")
-        message.text(
-            f'"{suggestion}" ?',
-            _style(data, "suggestion"),
-        )
+        message.text('Did you mean: "')
+        message.text(suggestion, _style(data, "suggestion"))
+        message.text('"?')
     else:
         message.text(_text(unknown, "hint_prefix"))
         message.text(_text(unknown, "hint_command"), _style(data, "hint_command"))
