@@ -58,6 +58,15 @@ def _run(command: list[str]) -> int:
         raise BreezeBuildError(f"cannot run {command[0]}: {exc}") from exc
 
 
+def _split_args(value: str | None, option: str) -> list[str]:
+    if not value:
+        return []
+    try:
+        return shlex.split(value)
+    except ValueError as exc:
+        raise BreezeBuildError(f"invalid {option}: {exc}") from exc
+
+
 def _frontend_args(is_lib: bool) -> list[str]:
     args = ["--project"]
     if is_lib:
@@ -88,12 +97,20 @@ def _requested_path(path: str | Path | None) -> Path:
         raise BreezeBuildError(f"cannot resolve project path: {exc}") from exc
 
 
-def check_project(path: str | Path | None = None) -> int:
+def check_project(
+        path: str | Path | None = None,
+        frontend_args: str | None = None,
+) -> int:
     root = _project_root(path)
     is_lib = _is_library(root)
+    extra = _split_args(frontend_args, "--frontend-args")
     requested = _requested_path(path)
     with _project_cwd(requested):
-        return _run([*_frontend_command(), *_frontend_args(is_lib)])
+        return _run([
+            *_frontend_command(),
+            *_frontend_args(is_lib),
+            *extra,
+        ])
 
 
 def _cwindc_path() -> Path:
@@ -109,22 +126,31 @@ def _cwindc_path() -> Path:
     return path
 
 
+def frontend_help() -> int:
+    return _run([*_frontend_command(), "--help"])
+
+
+def backend_help() -> int:
+    return _run([str(_cwindc_path()), "--help"])
+
+
 def build_project(
         path: str | Path | None = None,
         build_args: str | None = None,
+        frontend_args: str | None = None,
 ) -> int:
     root = _project_root(path)
     is_lib = _is_library(root)
-    extra = []
-    if build_args:
-        try:
-            extra = shlex.split(build_args)
-        except ValueError as exc:
-            raise BreezeBuildError(f"invalid --build-args: {exc}") from exc
+    extra = _split_args(build_args, "--build-args")
+    frontend_extra = _split_args(frontend_args, "--frontend-args")
 
     requested = _requested_path(path)
     with _project_cwd(requested):
-        result = _run([*_frontend_command(), *_frontend_args(is_lib)])
+        result = _run([
+            *_frontend_command(),
+            *_frontend_args(is_lib),
+            *frontend_extra,
+        ])
     if result != 0:
         return result
 
@@ -142,4 +168,10 @@ def build_project(
     return result
 
 
-__all__ = ["BreezeBuildError", "build_project", "check_project"]
+__all__ = [
+    "BreezeBuildError",
+    "backend_help",
+    "build_project",
+    "check_project",
+    "frontend_help",
+]

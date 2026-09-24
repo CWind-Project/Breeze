@@ -16,8 +16,10 @@ from .mutex_argparse import BreezeMutexArgParser, BreezeSubCMDHandle, \
 from .proj import (
     BreezeBuildError,
     BreezeProjectCreator,
+    backend_help,
     build_project,
     check_project,
+    frontend_help,
 )
 
 
@@ -60,11 +62,17 @@ def argparse(argv: list) -> tuple[BreezeArgBox, BreezeMutexArgParser]:
         )
     )
     build_sub.add_option("build-args", str)
-    parser.add_mutually_exclusive(
-        "check",
-        recv_type=str,
-        optional_value=True,
+    build_sub.add_option("frontend-args", str)
+    check_sub: BreezeSubCMDHandle = cast(
+        BreezeSubCMDHandle,
+        parser.add_mutually_exclusive(
+            "check",
+            recv_type=str,
+            need_subcmd=True,
+            optional_value=True,
+        )
     )
+    check_sub.add_option("frontend-args", str)
     return parser.parse(argv), parser
 
 
@@ -73,6 +81,10 @@ def main_help(parser: BreezeMutexArgParser) -> int:
 
 
 def help_sth(sth: str, parser: BreezeMutexArgParser) -> int:
+    if sth == "frontend":
+        return frontend_help()
+    if sth == "backend":
+        return backend_help()
     return render_command(sth, parser.option_entries(sth))
 
 
@@ -105,8 +117,12 @@ def build_handler(box: BreezeArgBox, parser: BreezeMutexArgParser)-> dict[str, C
         "build": lambda: build_project(
             getattr(box, "build"),
             vars(box).get("build-args"),
+            vars(box).get("frontend-args"),
         ),
-        "check": lambda: check_project(getattr(box, "check")),
+        "check": lambda: check_project(
+            getattr(box, "check"),
+            vars(box).get("frontend-args"),
+        ),
     }
 
 
